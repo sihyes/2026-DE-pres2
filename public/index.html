@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AWS S3 이미지 업로드 시연</title>
+</head>
+<body>
+    <h2>S3 이미지 데이터 스토리지 업로드 데모</h2>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="uploadFile()">업로드 실행</button>
+    <p id="status"></p>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const statusText = document.getElementById('status');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("파일을 먼저 선택해주세요!");
+                return;
+            }
+
+            try {
+                statusText.innerText = "1. Vercel 서버에 업로드 권한(URL) 요청 중...";
+                
+                // 1. Vercel API에 Presigned URL 요청
+                const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`);
+                const data = await response.json();
+                
+                if(!data.url) throw new Error("URL을 받아오지 못했습니다.");
+
+                statusText.innerText = "2. 권한 획득 완료! S3 버킷으로 파일 전송 중...";
+
+                // 2. 발급받은 URL을 사용해 S3로 직접 파일 업로드 (PUT 요청)
+                const uploadResponse = await fetch(data.url, {
+                    method: 'PUT',
+                    body: file,
+                    headers: { 'Content-Type': file.type }
+                });
+
+                if (uploadResponse.ok) {
+                    statusText.innerText = "✅ S3 업로드 성공! AWS S3 콘솔에서 확인해보세요.";
+                } else {
+                    statusText.innerText = "❌ 업로드 실패!";
+                }
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "오류가 발생했습니다: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
