@@ -4,11 +4,11 @@ export default function handler(req, res) {
 
   res.status(200).json({
     AWS_ACCESS_KEY_ID: accessKey
-      ? accessKey.slice(0, 4) + "****"
+      ? accessKey
       : "NOT_FOUND",
 
     AWS_SECRET_ACCESS_KEY: secretKey
-      ? secretKey.slice(0, 4) + "****"
+      ? secretKey
       : "NOT_FOUND",
   });
 }
